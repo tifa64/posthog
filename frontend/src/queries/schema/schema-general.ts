@@ -2607,6 +2607,7 @@ export interface CodebaseTreeResponseItem {
     id: string
     parentId: string | null
     type: string
+    synced: boolean
 }
 
 export type CodebaseTreeResponse = CodebaseTreeResponseItem[]
