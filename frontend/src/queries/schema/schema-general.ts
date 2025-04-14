@@ -2597,7 +2597,7 @@ export type EditorSemanticSearchResponse = EditorSemanticSearchResponseItem[]
 export interface EditorSemanticSearchQuery extends DataNode<EditorSemanticSearchQueryResponse> {
     kind: NodeKind.EditorSemanticSearchQuery
     embedding: number[]
-    userId: number
+    userId: integer
     codebaseId: string
     branch: string | null
 }
@@ -2617,7 +2617,7 @@ export type CodebaseTreeResponse = CodebaseTreeResponseItem[]
 
 export interface CodebaseTreeQuery extends DataNode<CodebaseTreeQueryResponse> {
     kind: NodeKind.CodebaseTreeQuery
-    userId: number
+    userId: integer
     codebaseId: string
     branch: string | null
 }
@@ -2634,7 +2634,7 @@ export type SyncedArtifactsResponse = SyncedArtifactsResponseItem[]
 
 export interface SyncedArtifactsQuery extends DataNode<SyncedArtifactsQueryResponse> {
     kind: NodeKind.SyncedArtifactsQuery
-    userId: number
+    userId: integer
     codebaseId: string
     artifactIds: string[]
 }
