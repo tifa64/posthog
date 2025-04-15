@@ -23,7 +23,7 @@ class FirstTimeForUserAggregationQuery:
         self._event_or_action_filter = event_or_action_filter
 
     def to_query(self) -> ast.Array:
-        return parse_expr("(SELECT groupArray(uuid) from {inner_query})[0]", {"inner_query": self._inner_query()})
+        return parse_expr("(SELECT groupArray(uuid) from {inner_query})[1]", {"inner_query": self._inner_query()})
 
     def _inner_query(self) -> ast.SelectQuery | None:
         inner_query = ast.SelectQuery(select=[])
