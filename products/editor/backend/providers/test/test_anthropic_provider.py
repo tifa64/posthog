@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from ..anthropic import AnthropicConfig, AnthropicProvider
+from products.editor.backend.providers.anthropic import AnthropicConfig, AnthropicProvider
 
 
 class TestAnthropicProvider(TestCase):

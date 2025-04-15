@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import openai
 from django.test import TestCase
 
-from ..inkeep import InkeepProvider
+from products.editor.backend.providers.inkeep import InkeepProvider
 
 
 class TestInkeepProvider(TestCase):

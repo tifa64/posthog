@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from ..codestral import CodestralConfig, CodestralProvider
+from products.editor.backend.providers.codestral import CodestralConfig, CodestralProvider
 
 
 class TestCodestralProvider(TestCase):
