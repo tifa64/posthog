@@ -42,6 +42,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | s
     && sudo apt update \
     && sudo apt install gh -y
 
+# Install `sqlx-cli` (for migrations)
+RUN cargo install sqlx-cli --no-default-features --features postgres
+
 # Install node via NVM (https://github.com/nvm-sh/nvm)
 ARG NODE_VERSION="18"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
