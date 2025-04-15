@@ -844,17 +844,6 @@ class DurationType(StrEnum):
     INACTIVE_SECONDS = "inactive_seconds"
 
 
-class EditorSemanticSearchResponseItem(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    artifactId: str
-    distance: float
-    lineEnd: str
-    lineStart: str
-    obfuscatedPath: str
-
-
 class Key(StrEnum):
     TAG_NAME = "tag_name"
     TEXT = "text"
@@ -1451,7 +1440,6 @@ class NodeKind(StrEnum):
     ACTORS_PROPERTY_TAXONOMY_QUERY = "ActorsPropertyTaxonomyQuery"
     TRACES_QUERY = "TracesQuery"
     VECTOR_SEARCH_QUERY = "VectorSearchQuery"
-    EDITOR_SEMANTIC_SEARCH_QUERY = "EditorSemanticSearchQuery"
     CODEBASE_TREE_QUERY = "CodebaseTreeQuery"
     SYNCED_ARTIFACTS_QUERY = "SyncedArtifactsQuery"
 
@@ -4333,36 +4321,6 @@ class CachedCodebaseTreeQueryResponse(BaseModel):
     )
 
 
-class CachedEditorSemanticSearchQueryResponse(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    cache_key: str
-    cache_target_age: Optional[datetime] = None
-    calculation_trigger: Optional[str] = Field(
-        default=None, description="What triggered the calculation of the query, leave empty if user/immediate"
-    )
-    error: Optional[str] = Field(
-        default=None,
-        description="Query error. Returned only if 'explain' or `modifiers.debug` is true. Throws an error otherwise.",
-    )
-    hogql: Optional[str] = Field(default=None, description="Generated HogQL query.")
-    is_cached: bool
-    last_refresh: datetime
-    modifiers: Optional[HogQLQueryModifiers] = Field(
-        default=None, description="Modifiers used when performing the query"
-    )
-    next_allowed_client_refresh: datetime
-    query_status: Optional[QueryStatus] = Field(
-        default=None, description="Query status indicates whether next to the provided data, a query is still running."
-    )
-    results: list[EditorSemanticSearchResponseItem]
-    timezone: str
-    timings: Optional[list[QueryTiming]] = Field(
-        default=None, description="Measured timings for different parts of the query generation process"
-    )
-
-
 class CachedEventTaxonomyQueryResponse(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -5662,27 +5620,6 @@ class DatabaseSchemaDataWarehouseTable(BaseModel):
     source: Optional[DatabaseSchemaSource] = None
     type: Literal["data_warehouse"] = "data_warehouse"
     url_pattern: str
-
-
-class EditorSemanticSearchQueryResponse(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    error: Optional[str] = Field(
-        default=None,
-        description="Query error. Returned only if 'explain' or `modifiers.debug` is true. Throws an error otherwise.",
-    )
-    hogql: Optional[str] = Field(default=None, description="Generated HogQL query.")
-    modifiers: Optional[HogQLQueryModifiers] = Field(
-        default=None, description="Modifiers used when performing the query"
-    )
-    query_status: Optional[QueryStatus] = Field(
-        default=None, description="Query status indicates whether next to the provided data, a query is still running."
-    )
-    results: list[EditorSemanticSearchResponseItem]
-    timings: Optional[list[QueryTiming]] = Field(
-        default=None, description="Measured timings for different parts of the query generation process"
-    )
 
 
 class EntityNode(BaseModel):
@@ -7367,27 +7304,6 @@ class QueryResponseAlternative59(BaseModel):
     )
 
 
-class QueryResponseAlternative60(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    error: Optional[str] = Field(
-        default=None,
-        description="Query error. Returned only if 'explain' or `modifiers.debug` is true. Throws an error otherwise.",
-    )
-    hogql: Optional[str] = Field(default=None, description="Generated HogQL query.")
-    modifiers: Optional[HogQLQueryModifiers] = Field(
-        default=None, description="Modifiers used when performing the query"
-    )
-    query_status: Optional[QueryStatus] = Field(
-        default=None, description="Query status indicates whether next to the provided data, a query is still running."
-    )
-    results: list[EditorSemanticSearchResponseItem]
-    timings: Optional[list[QueryTiming]] = Field(
-        default=None, description="Measured timings for different parts of the query generation process"
-    )
-
-
 class RecordingsQueryResponse(BaseModel):
     model_config = ConfigDict(
         extra="forbid",
@@ -8223,21 +8139,6 @@ class Response15(BaseModel):
     timings: Optional[list[QueryTiming]] = Field(
         default=None, description="Measured timings for different parts of the query generation process"
     )
-
-
-class EditorSemanticSearchQuery(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    branch: Optional[str] = None
-    codebaseId: str
-    embedding: list[float]
-    kind: Literal["EditorSemanticSearchQuery"] = "EditorSemanticSearchQuery"
-    modifiers: Optional[HogQLQueryModifiers] = Field(
-        default=None, description="Modifiers used when performing the query"
-    )
-    response: Optional[EditorSemanticSearchQueryResponse] = None
-    userId: int
 
 
 class EventTaxonomyQuery(BaseModel):
@@ -9616,7 +9517,6 @@ class QueryResponseAlternative(
             QueryResponseAlternative57,
             QueryResponseAlternative58,
             QueryResponseAlternative59,
-            QueryResponseAlternative60,
         ]
     ]
 ):
@@ -9672,7 +9572,6 @@ class QueryResponseAlternative(
         QueryResponseAlternative57,
         QueryResponseAlternative58,
         QueryResponseAlternative59,
-        QueryResponseAlternative60,
     ]
 
 
@@ -10130,7 +10029,6 @@ class HogQLAutocomplete(BaseModel):
             RecordingsQuery,
             TracesQuery,
             VectorSearchQuery,
-            EditorSemanticSearchQuery,
         ]
     ] = Field(default=None, description="Query in whose context to validate.")
     startPosition: int = Field(..., description="Start position of the editor word")
@@ -10186,7 +10084,6 @@ class HogQLMetadata(BaseModel):
             RecordingsQuery,
             TracesQuery,
             VectorSearchQuery,
-            EditorSemanticSearchQuery,
         ]
     ] = Field(
         default=None,
@@ -10257,7 +10154,6 @@ class QueryRequest(BaseModel):
         ActorsPropertyTaxonomyQuery,
         TracesQuery,
         VectorSearchQuery,
-        EditorSemanticSearchQuery,
     ] = Field(
         ...,
         description=(
@@ -10338,7 +10234,6 @@ class QuerySchemaRoot(
             ActorsPropertyTaxonomyQuery,
             TracesQuery,
             VectorSearchQuery,
-            EditorSemanticSearchQuery,
         ]
     ]
 ):
@@ -10393,7 +10288,6 @@ class QuerySchemaRoot(
         ActorsPropertyTaxonomyQuery,
         TracesQuery,
         VectorSearchQuery,
-        EditorSemanticSearchQuery,
     ] = Field(..., discriminator="kind")
 
 
