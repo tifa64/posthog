@@ -2,14 +2,16 @@ from freezegun import freeze_time
 from pathlib import Path
 from decimal import Decimal
 
-from products.revenue_analytics.backend.hogql_queries.revenue_example_data_warehouse_tables_query_runner import (
-    RevenueExampleDataWarehouseTablesQueryRunner,
+from products.revenue_analytics.backend.hogql_queries.revenue_analytics_overview_query_runner import (
+    RevenueAnalyticsOverviewQueryRunner,
 )
 from products.revenue_analytics.backend.models import STRIPE_DATA_WAREHOUSE_CHARGE_IDENTIFIER
-
 from posthog.schema import (
-    RevenueExampleDataWarehouseTablesQuery,
-    RevenueExampleDataWarehouseTablesQueryResponse,
+    DateRange,
+    RevenueAnalyticsOverviewQuery,
+    RevenueAnalyticsOverviewQueryResponse,
+    RevenueAnalyticsOverviewItemKey,
+    RevenueAnalyticsOverviewItem,
 )
 from posthog.test.base import (
     APIBaseTest,
@@ -24,13 +26,12 @@ from products.revenue_analytics.backend.hogql_queries.test.data.structure import
     STRIPE_CHARGE_COLUMNS,
 )
 
-
-TEST_BUCKET = "test_storage_bucket-posthog.revenue.stripe_charges"
+TEST_BUCKET = "test_storage_bucket-posthog.revenue_analytics.overview_query_runner.stripe_charges"
 
 
 @snapshot_clickhouse_queries
-class TestRevenueExampleDataWarehouseTablesQueryRunner(ClickhouseTestMixin, APIBaseTest):
-    QUERY_TIMESTAMP = "2025-01-29"
+class TestRevenueAnalyticsOverviewQueryRunner(ClickhouseTestMixin, APIBaseTest):
+    QUERY_TIMESTAMP = "2025-02-15"
 
     def setUp(self):
         super().setUp()
@@ -66,11 +67,14 @@ class TestRevenueExampleDataWarehouseTablesQueryRunner(ClickhouseTestMixin, APIB
 
     def _run_revenue_example_external_tables_query(self):
         with freeze_time(self.QUERY_TIMESTAMP):
-            query = RevenueExampleDataWarehouseTablesQuery()
-            runner = RevenueExampleDataWarehouseTablesQueryRunner(team=self.team, query=query)
+            query = RevenueAnalyticsOverviewQuery(dateRange=DateRange(date_from="-30d"))
+            runner = RevenueAnalyticsOverviewQueryRunner(
+                team=self.team,
+                query=query,
+            )
 
             response = runner.calculate()
-            RevenueExampleDataWarehouseTablesQueryResponse.model_validate(response)
+            RevenueAnalyticsOverviewQueryResponse.model_validate(response)
 
             return response
 
@@ -78,19 +82,27 @@ class TestRevenueExampleDataWarehouseTablesQueryRunner(ClickhouseTestMixin, APIB
         self.table.delete()
         results = self._run_revenue_example_external_tables_query().results
 
-        assert len(results) == 0
+        self.assertEqual(
+            results,
+            [
+                RevenueAnalyticsOverviewItem(key=RevenueAnalyticsOverviewItemKey.REVENUE, value=0.0),
+                RevenueAnalyticsOverviewItem(key=RevenueAnalyticsOverviewItemKey.PAYING_CUSTOMER_COUNT, value=0.0),
+                RevenueAnalyticsOverviewItem(key=RevenueAnalyticsOverviewItemKey.AVG_REVENUE_PER_CUSTOMER, value=0.0),
+            ],
+        )
 
-    def test_database_query(self):
-        response = self._run_revenue_example_external_tables_query()
-        results = response.results
+    def test_with_data(self):
+        results = self._run_revenue_example_external_tables_query().results
 
-        # Not all rows in the CSV have a status of "succeeded", let's filter them out here
-        assert len(results) == len(self.csv_df[self.csv_df["status"] == "succeeded"])
-
-        # Proper conversions for some of the rows
-        assert results[0][2:] == (Decimal("220"), "EUR", Decimal("182.247167654"), "GBP")
-        assert results[1][2:] == (Decimal("180"), "GBP", Decimal("180"), "GBP")
-
-        # Test JPY where there are no decimals, and an input of 500 implies 500 Yen
-        # rather than the above where we had 22000 for 220 EUR (and etc.)
-        assert results[3][2:] == (Decimal("500"), "JPY", Decimal("2.5438762801"), "GBP")
+        self.assertEqual(
+            results,
+            [
+                RevenueAnalyticsOverviewItem(
+                    key=RevenueAnalyticsOverviewItemKey.REVENUE, value=Decimal("1349.3495305777")
+                ),
+                RevenueAnalyticsOverviewItem(key=RevenueAnalyticsOverviewItemKey.PAYING_CUSTOMER_COUNT, value=10),
+                RevenueAnalyticsOverviewItem(
+                    key=RevenueAnalyticsOverviewItemKey.AVG_REVENUE_PER_CUSTOMER, value=Decimal("134.9349530577")
+                ),
+            ],
+        )
