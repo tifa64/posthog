@@ -26,10 +26,9 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
         builder = FirstTimeForUserAggregationQuery(context=ctx, filters=filters, event_or_action_filter=event_filter)
         query = builder.to_query()
 
-        assert isinstance(query.select[0], ast.Field)
-        assert query.select[0].chain == ["uuid"]
-        assert query.select_from is not None
-        assert isinstance(query.select_from.table, ast.SelectQuery)
+        assert isinstance(query.array, ast.SelectQuery)
+        assert query.array.select[0].name == "groupArray"
+        assert isinstance(query.array.select_from.table, ast.SelectQuery)
 
     def test_first_time_for_user_aggregation_query_select(self):
         funnels_query = FunnelsQuery(
@@ -48,8 +47,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
             )
             query = builder.to_query()
 
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         first = query.select[0]
         assert isinstance(first, ast.Alias)
@@ -100,9 +98,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
                 context=ctx, filters=filters, event_or_action_filter=event_filter
             )
             query = builder.to_query()
-
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         assert isinstance(query.where, ast.And)
         assert isinstance(query.where.exprs[0], ast.CompareOperation)
@@ -123,8 +119,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
             builder = FirstTimeForUserAggregationQuery(context=ctx)
             query = builder.to_query()
 
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         second = query.select[1]
         assert isinstance(second, ast.Alias)
@@ -150,8 +145,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
         builder = FirstTimeForUserAggregationQuery(context=ctx)
         query = builder.to_query()
 
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         assert query.group_by is not None
         assert isinstance(query.group_by[0], ast.Field)
@@ -168,8 +162,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
         builder = FirstTimeForUserAggregationQuery(context=ctx)
         query = builder.to_query()
 
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         assert query.having is not None
         assert isinstance(query.having, ast.And)
@@ -203,8 +196,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
         builder = FirstTimeForUserAggregationQuery(context=ctx)
         query = builder.to_query()
 
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         assert query.select_from is not None
         assert query.select_from.sample is not None
@@ -221,8 +213,7 @@ class TestFunnelAggregationOperations(ClickhouseTestMixin, APIBaseTest):
         builder = FirstTimeForUserAggregationQuery(context=ctx)
         query = builder.to_query()
 
-        assert query.select_from is not None
-        query = cast(ast.SelectQuery, query.select_from.table)
+        query = cast(ast.SelectQuery, query.array.select_from.table)
 
         assert query.select_from is not None
         assert query.select_from.sample is None

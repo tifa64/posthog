@@ -1,6 +1,7 @@
 from typing import cast
 
 from posthog.hogql import ast
+from posthog.hogql.parser import parse_expr
 from posthog.hogql_queries.insights.funnels.funnel_query_context import FunnelQueryContext
 from posthog.hogql_queries.insights.utils.aggregations import FirstTimeForUserEventsQueryAlternator
 from posthog.hogql_queries.utils.query_date_range import QueryDateRange
@@ -21,12 +22,8 @@ class FirstTimeForUserAggregationQuery:
         self._filters = filters
         self._event_or_action_filter = event_or_action_filter
 
-    def to_query(self) -> ast.SelectQuery:
-        query = ast.SelectQuery(
-            select=[ast.Field(chain=["uuid"])],
-            select_from=ast.JoinExpr(table=self._inner_query()),
-        )
-        return query
+    def to_query(self) -> ast.Array:
+        return parse_expr("(SELECT groupArray(uuid) from {inner_query})[0]", {"inner_query": self._inner_query()})
 
     def _inner_query(self) -> ast.SelectQuery | None:
         inner_query = ast.SelectQuery(select=[])
